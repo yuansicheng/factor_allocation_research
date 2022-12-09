@@ -98,6 +98,12 @@ def optimalFactorPortfolio(fmp_return):
     factor_weights = minimize(factorPortfolioReturn, w0, constraints=cons, args=(cov, Q), bounds=bounds,  method='SLSQP').x
     return pd.DataFrame(factor_weights, index=fmp_return.columns).T
 
+def getAssetExpectedReturns(fmp_weights, factor_weights, asset_returns):
+    asset_weights = np.matrix(factor_weights).dot(np.matrix(fmp_weights).T)
+    cov = np.matrix(asset_returns.cov()).astype('float64')
+    alpha = cov @ asset_weights
+    return pd.DataFrame(alpha,index=asset_returns.columns).T
+
 # # test
 # this_path = os.path.dirname(__file__)
 # if this_path not in sys.path:

@@ -72,7 +72,7 @@ def getFactorMimickingPortfolio(asset_returns, factors, scale=None):
     
     P = np.linalg.pinv(B.T @ sigma_inv @ B) @ B.T @ sigma_inv
     # print(P)
-    P = pd.DataFrame(P.T[:,:-1], index=list(asset_returns.keys()), columns=list(factors.keys()))
+    P = pd.DataFrame(P.T, index=list(asset_returns.keys()), columns=list(factors.keys())+['intercept'])
 
     if scale:
         P = P / P.abs().sum() * scale
@@ -80,27 +80,26 @@ def getFactorMimickingPortfolio(asset_returns, factors, scale=None):
     return P
 
 def optimalFactorPortfolio(fmp_return):
-    cov = np.matrix(fmp_return.cov()).astype('float64')
+    cov = np.matrix(fmp_return.cov()).astype('float64') * 252
     w0 = [1/fmp_return.shape[1]] * fmp_return.shape[1]
     Q = np.matrix((1+fmp_return).cumprod().iloc[-1]-1).astype('float64').T
 
-    # print(cov, w0, Q)
-
     def factorPortfolioReturn(w,cov,Q): 
         w = np.matrix(w).astype('float64').T
+        # print(w.T @ Q, 0.5 * w.T @ cov @ w)
         return -(w.T @ Q - 0.5 * w.T @ cov @ w)[0,0]
     
     #set constraints
     cons = [] 
-    cons.append({'type': 'eq', 'fun': lambda w: -sum(w) + 1})
-    bounds = tuple([(0,1)] * fmp_return.shape[1])
+    cons.append({'type': 'eq', 'fun': lambda w: sum(w)-1})
+    bounds = tuple([(-1e3,1e3)] * fmp_return.shape[1])
 
     factor_weights = minimize(factorPortfolioReturn, w0, constraints=cons, args=(cov, Q), bounds=bounds,  method='SLSQP').x
     return pd.DataFrame(factor_weights, index=fmp_return.columns).T
 
 def getAssetExpectedReturns(fmp_weights, factor_weights, asset_returns):
     asset_weights = np.matrix(factor_weights).dot(np.matrix(fmp_weights).T)
-    cov = np.matrix(asset_returns.cov()).astype('float64')
+    cov = np.matrix(asset_returns.cov()).astype('float64') * 252
     alpha = cov @ asset_weights
     return pd.DataFrame(alpha,index=asset_returns.columns).T
 

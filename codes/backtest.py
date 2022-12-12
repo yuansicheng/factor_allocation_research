@@ -17,7 +17,7 @@ class Strategy:
     def __init__(self) -> None:
         pass
 
-    def run(self, close_data):
+    def run(self, id_date, close_data):
         raise NotImplementedError
 
 class BacktestManager:
@@ -111,7 +111,7 @@ class BacktestManager:
             # 3.if necessary, run strategy
             if not self._count_date % self.frequency:
                 # print('run strategy')
-                self._historcial_weights[id_date] = self._strategy.run(self._useful_close)
+                self._historcial_weights[id_date] = self._strategy.run(id_date, self._useful_close)
 
                 # 4.update weights
                 self._updateStrategyWeights()

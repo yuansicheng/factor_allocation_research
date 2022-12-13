@@ -43,7 +43,9 @@ class BacktestManager:
         self._count_date = 0
         self._position_columns = ['nominal_position', 'actual_position', 'weight']
 
-    def getHistoricalValue(self):
+    def getHistoricalValue(self, scale=False):
+        if scale:
+            return self._historical_value / self._historical_value.iloc[0]
         return self._historical_value.copy()
         
     def _initArgs(self):
@@ -81,6 +83,7 @@ class BacktestManager:
         this_position.nominal_position = this_position.nominal_position * (1+self._id_date_return)
 
         self._cash += (this_position.nominal_position.sum() - self._historcial_position[-1].nominal_position.sum())
+        self._historcial_position.append(this_position)
 
         self._updateWeightAndValue()
 

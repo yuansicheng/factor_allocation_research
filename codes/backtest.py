@@ -90,7 +90,7 @@ class BacktestManager:
     def _updateStrategyWeights(self):
         weights = self._historcial_weights[self._id_date]
         if not weights.any():
-            print('{}: skip'.format(self._id_date))
+            print('BackettestManager: skip {} '.format(self._id_date))
             return
         self._historcial_position[-1].nominal_position = weights.fillna(0) * self._value
 
